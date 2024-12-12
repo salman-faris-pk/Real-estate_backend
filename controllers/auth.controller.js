@@ -40,7 +40,7 @@ const Register =async(req,res)=>{
     });
 
 
-    res.status(201).json({message:"User created  succcesfully"});
+    res.status(201).json({success:true,message:"User created  succcesfully"});
 
    }catch(err){
     console.log(err);
@@ -48,6 +48,7 @@ const Register =async(req,res)=>{
    }
 
 };
+
 
 
 
@@ -78,7 +79,7 @@ const Register =async(req,res)=>{
      httpOnly: true,
     //  secure:true,
      maxAge: age,
-   }).status(200).json(userInfo)
+   }).status(200).json({success:true,userInfo})
    
     
    } catch (err) {
