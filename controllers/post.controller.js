@@ -24,7 +24,7 @@ const getPosts= async(req,res)=>{
 
           res.status(200).json(posts)
         
-    } catch (error) {
+    } catch (err) {
        console.log(err);
        res.status(500).json({ message: "Failed to get posts" });
     }
@@ -76,7 +76,7 @@ const getPost= async(req,res)=>{
         });
 
         
-    } catch (error) {
+    } catch (err) {
         console.log(err);
         res.status(500).json({ message: "Failed to get post" });
     }
@@ -84,18 +84,64 @@ const getPost= async(req,res)=>{
 
 
 
-const addPost= async(req,res)=>{
 
+const addPost= async(req,res)=>{
+   
+    const body= req.body;
+    const tokenUserId= req.userId;
+
+    try {
+        const newPost= await prisma.post.create({
+            data:{
+                ...body.postData,
+                userId: tokenUserId,
+                postDetail: {
+                    create: body.postDetail,    //Used to create related nested  related PostDetail
+                },
+            },
+        });
+
+        res.status(200).json(newPost)
+        
+    } catch (err) {
+        console.log(err);
+       res.status(500).json({ message: "Failed to create post" });
+    }
 };
 
 
 const updatePost= async(req,res)=>{
-
+    try {
+        res.status(200).json();
+      } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: "Failed to update posts" });
+      }
 };
 
 
 const deletePost= async(req,res)=>{
-
+    const id = req.params.id;
+    const tokenUserId = req.userId;
+  
+    try {
+      const post = await prisma.post.findUnique({
+        where: { id },
+      });
+  
+      if (post.userId !== tokenUserId) {
+        return res.status(403).json({ message: "Not Authorized!" });
+      }
+  
+      await prisma.post.delete({
+        where: { id },
+      });
+  
+      res.status(200).json({ message: "Post deleted" });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ message: "Failed to delete post" });
+    }
 };
 
 
