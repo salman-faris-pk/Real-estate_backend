@@ -74,7 +74,7 @@ const getPost= async(req,res)=>{
             ...post,
             isSaved: false
         });
-
+ 
         
     } catch (err) {
         console.log(err);
@@ -90,6 +90,7 @@ const addPost= async(req,res)=>{
     const body= req.body;
     const tokenUserId= req.userId;
 
+  
     try {
         const newPost= await prisma.post.create({
             data:{
@@ -107,8 +108,8 @@ const addPost= async(req,res)=>{
         console.log(err);
        res.status(500).json({ message: "Failed to create post" });
     }
-};
-
+}; 
+ 
 
 const updatePost= async(req,res)=>{
     try {
@@ -125,19 +126,29 @@ const deletePost= async(req,res)=>{
     const tokenUserId = req.userId;
   
     try {
+
       const post = await prisma.post.findUnique({
         where: { id },
+        include: { postDetail: true}
       });
+
+      if (!post) {
+        return res.status(404).json({ message: "Post not found" });
+    }
   
       if (post.userId !== tokenUserId) {
         return res.status(403).json({ message: "Not Authorized!" });
       }
   
-      await prisma.post.delete({
-        where: { id },
-      });
+      //delete PostDetail first, then Post
+
+       await prisma.$transaction([
+         prisma.postDetail.deleteMany({ where: { postId : id}}),
+         prisma.post.delete({ where : { id }}),
+       ])
   
-      res.status(200).json({ message: "Post deleted" });
+      res.status(200).json({ message: "Post deleted" })
+
     } catch (err) {
       console.log(err);
       res.status(500).json({ message: "Failed to delete post" });
