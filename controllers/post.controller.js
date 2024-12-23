@@ -32,56 +32,63 @@ const getPosts= async(req,res)=>{
 
 
 
-const getPost= async(req,res)=>{
-    
-    const id= req.params.id;
 
+const getPost = async (req, res) => {
+
+    const id = req.params.id;
+  
     try {
-        const post= await prisma.post.findUnique({
-            where:{ id },
-            include:{
-                postDetail: true,
-                user:{
-                    select:{
-                        username: true,
-                        avatar: true,
-                    }
-                }
-            }
-        });
 
-        const token= req.cookies?.token;
+      const post = await prisma.post.findUnique({
+        where: { id },
+        include: {
+          postDetail: true,
+          user: {
+            select: {
+              username: true,
+              avatar: true,
+            },
+          },
+        },
+      });
+  
+      if (!post) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+  
+      const token = req.cookies?.token;
+  
+      let isSaved = false;
+  
+      if (token) {
+        try {
+          const payload = jwt.verify(token, process.env.SECRET_KEY);
+  
 
-        if(token){
-            jwt.verify(token, process.env.SECRET_KEY,async(err, payload)=> {
-                if(!err){
-                    const saved= await prisma.savedPost.findUnique({
-                        where:{
-                            userId_postId: {
-                                postId: id,
-                                userId: payload.id,
-                            }
-                        }
-                    });
+          const saved = await prisma.savedPost.findUnique({
+            where: {
+              userId_postId: {
+                postId: id,
+                userId: payload.id,
+              },
+            },
+          });
+  
+          isSaved = !!saved; 
 
-                    res.status(200).json({...post, isSaved: saved ? true : false});
-                }
-            });
-        };
+        } catch (err) {
+          console.log("Token verification failed:", err.message);
+        }
+      };
 
-
-        res.status(200).json({
-            ...post,
-            isSaved: false
-        });
- 
-        
+      res.status(200).json({ ...post, isSaved });
+      
     } catch (err) {
-        console.log(err);
-        res.status(500).json({ message: "Failed to get post" });
+      console.error(err);
+      res.status(500).json({ message: "Failed to get post" });
     }
-};
-
+  };
+  
 
 
 

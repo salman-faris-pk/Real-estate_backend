@@ -69,13 +69,12 @@ const Register =async(req,res)=>{
     return res.status(400).json({ message: "Invalid Credentials!" });
    }
 
-   const age = 60 * 60 * 24 * 7;
-
-   const token= jwt.sign({id: user.id,isAdmin: false},process.env.SECRET_KEY,{expiresIn: age});
+   const age = 3 * 24 * 60 * 60 * 1000;
+   const token= jwt.sign({id: user.id,isAdmin: false},process.env.SECRET_KEY,{expiresIn: "3d"});
 
    const {password: userPassword,...userInfo}= user;
 
-   res.cookie("token", token,{
+   res.cookie("token", token,{ 
      httpOnly: true,
     //  secure:true,
      maxAge: age,
