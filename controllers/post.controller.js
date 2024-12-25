@@ -63,8 +63,7 @@ const getPost = async (req, res) => {
       if (token) {
         try {
           const payload = jwt.verify(token, process.env.SECRET_KEY);
-  
-
+          
           const saved = await prisma.savedPost.findUnique({
             where: {
               userId_postId: {

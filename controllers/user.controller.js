@@ -52,7 +52,7 @@ const updateUser= async(req,res)=>{
         if(password){
             updatedPassword= await bcrypt.hash(password, 10)
         }
-
+ 
         const UpdatedUser = await prisma.user.update({
             where: { id },
             data: {
@@ -99,10 +99,56 @@ const deleteUser= async(req,res)=>{
 };
 
 
+const savePost=async(req,res)=>{
+
+  const postId = req.body.postId;
+  const tokenUserId = req.userId;
+
+  try {
+
+    const savedPost = await prisma.savedPost.findUnique({
+        where:{
+          userId_postId:{         //userId_postId refers to a composite unique key that includes both the userId and postId fields
+            userId: tokenUserId,
+            postId,
+          }
+        }
+    });
+
+    if(savedPost){
+        await prisma.savedPost.delete({
+           where:{
+            id: savedPost.id,
+           }
+        });
+
+        res.status(200).json({ message: "Post removed from saved list" });
+    }else{
+      await prisma.savedPost.create({
+        data:{
+           userId: tokenUserId,
+           postId
+        }
+      });
+      res.status(200).json({ message: "Post saved" });
+    }
+    
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Failed to delete users!" });
+  }
+};
+
+
+
+
+
+
 
 export {
     getAllUsers,
     getUser,
     updateUser,
     deleteUser,
+    savePost,
 }
