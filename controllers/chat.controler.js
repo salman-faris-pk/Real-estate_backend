@@ -127,7 +127,7 @@ const readChat=async(req,res)=>{
             },
             data:{
                 seenBy: {
-                    set: [tokenUserId]
+                    set: chat.seenBy.includes(tokenUserId) ? chat.seenBy : [...chat.seenBy, tokenUserId], // Only add if not already in the array
                 },
             },
         });
