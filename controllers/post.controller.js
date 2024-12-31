@@ -59,7 +59,8 @@ const getPost = async (req, res) => {
       const token = req.cookies?.token;
   
       let isSaved = false;
-  
+      let isChat= false;
+
       if (token) {
         try {
           const payload = jwt.verify(token, process.env.SECRET_KEY);
@@ -72,15 +73,26 @@ const getPost = async (req, res) => {
               },
             },
           });
-  
-          isSaved = !!saved; 
 
+          isSaved = !!saved; 
+          
+          const Chat = await prisma.chat.findFirst({
+            where: {
+              userIDs: {
+                 hasEvery: [payload.id, post.userId], 
+              },
+            },
+          });
+          
+          
+          isChat = !!Chat;
+       
         } catch (err) {
           console.log("Token verification failed:", err.message);
         }
       };
 
-      res.status(200).json({ ...post, isSaved });
+      res.status(200).json({ ...post, isSaved ,isChat});
       
     } catch (err) {
       console.error(err);
